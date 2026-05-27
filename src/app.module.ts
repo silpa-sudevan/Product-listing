@@ -20,7 +20,8 @@ import { AdminModule } from './admin/admin.module';
     }),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'public'),
-      exclude: ['/api/*path'],
+      serveRoot: '/',
+      exclude: ['/api*'],
     }),
     ProductsModule,
     AdminModule,
