@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — Product Management</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f0f2f5; color: #222; }
+    header { background: #1a1a2e; color: #fff; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; }
+    header h1 { font-size: 1.3rem; }
+    header nav a { color: #aad4f5; text-decoration: none; margin-left: 18px; font-size: 0.88rem; }
+    header nav a:hover { color: #fff; }
+    header nav a.nav-highlight { background: #f5a623; color: #1a1a2e; padding: 5px 14px; border-radius: 20px; font-weight: 700; font-size: 0.82rem; letter-spacing: 0.3px; transition: background .2s; }
+    header nav a.nav-highlight:hover { background: #ffbe45; color: #1a1a2e; }
+    .layout { display: flex; min-height: calc(100vh - 53px); }
+    aside { width: 220px; background: #16213e; color: #cdd; flex-shrink: 0; padding-top: 20px; display: flex; flex-direction: column; }
+    aside a { display: block; padding: 12px 22px; color: #aad4f5; text-decoration: none; font-size: 0.9rem; transition: background .15s; }
+    aside a:hover, aside a.active { background: #0f3460; color: #fff; }
+    .content { flex: 1; padding: 28px 32px; overflow-x: auto; }
+    h2.page-title { font-size: 1.3rem; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+    .btn { padding: 9px 20px; border: none; border-radius: 7px; cursor: pointer; font-size: 0.88rem; font-weight: 600; }
+    .btn-primary { background: #e94560; color: #fff; }
+    .btn-primary:hover { background: #c73652; }
+    .btn-success { background: #28a745; color: #fff; }
+    .btn-success:hover { background: #218838; }
+    .btn-danger { background: #dc3545; color: #fff; }
+    .btn-danger:hover { background: #c82333; }
+    .btn-secondary { background: #6c757d; color: #fff; }
+    .btn-info { background: #17a2b8; color: #fff; }
+    table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,.06); font-size: 0.88rem; }
+    th { background: #1a1a2e; color: #fff; padding: 11px 14px; text-align: left; }
+    td { padding: 10px 14px; border-bottom: 1px solid #eee; vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #f9f9f9; }
+    tr.clickable-row { cursor: pointer; }
+    tr.clickable-row:hover td { background: #eef2ff; }
+    .badge { padding: 3px 9px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+    .badge-in_stock { background: #e6f9ef; color: #1a7a40; }
+    .badge-out_of_stock { background: #fdecea; color: #c62828; }
+    .badge-pre_order { background: #fff3e0; color: #e65100; }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.55); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; overflow-y: auto; }
+    .modal { background: #fff; border-radius: 14px; padding: 28px 32px; width: 100%; max-width: 700px; max-height: 90vh; overflow-y: auto; position: relative; }
+    .modal h3 { font-size: 1.2rem; margin-bottom: 20px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .form-full { grid-column: 1 / -1; }
+    label { display: block; font-size: 0.82rem; font-weight: 600; color: #555; margin-bottom: 4px; }
+    input, select, textarea { width: 100%; padding: 9px 12px; border: 1px solid #ccc; border-radius: 7px; font-size: 0.9rem; font-family: inherit; }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: #e94560; }
+    textarea { resize: vertical; min-height: 80px; }
+    .form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+    .close-btn { position: absolute; top: 16px; right: 20px; background: none; border: none; font-size: 1.4rem; cursor: pointer; color: #888; }
+    .toast { position: fixed; bottom: 24px; right: 24px; background: #333; color: #fff; padding: 12px 22px; border-radius: 8px; font-size: 0.9rem; z-index: 9999; animation: fadeIn .3s; }
+    .toast.success { background: #28a745; }
+    .toast.error { background: #dc3545; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .loading { text-align: center; padding: 60px; }
+    .spinner { width: 36px; height: 36px; border: 4px solid #eee; border-top-color: #e94560; border-radius: 50%; animation: spin .7s linear infinite; margin: 0 auto 12px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .pagination { display: flex; gap: 8px; margin-top: 18px; }
+    .pagination button { padding: 7px 14px; border: 1px solid #ddd; background: #fff; border-radius: 6px; cursor: pointer; font-size: 0.85rem; }
+    .pagination button.active { background: #e94560; color: #fff; border-color: #e94560; }
+    .search-row { display: flex; gap: 12px; margin-bottom: 18px; align-items: center; }
+    .search-row input { max-width: 300px; }
+    .img-preview { width: 48px; height: 48px; border-radius: 6px; object-fit: cover; background: #eee; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>🔧 Admin — Product Management</h1>
+  <nav>
+    <a href="/api/docs" target="_blank" class="nav-highlight">📄 API Docs</a>
+  </nav>
+</header>
+
+<div class="layout">
+  <aside>
+    <a href="#products" class="active" onclick="showSection('products')">📦 Products</a>
+    <a href="#create" onclick="openCreate()">➕ Add Product</a>
+    <a href="/api/docs" target="_blank" style="margin-top:auto;border-top:1px solid #1e2f52;color:#f5a623;font-weight:600;">📄 API Docs ↗</a>
+  </aside>
+
+  <div class="content">
+    <div id="section-products">
+      <h2 class="page-title">
+        All Products
+        <button class="btn btn-primary" onclick="openCreate()">+ Add Product</button>
+      </h2>
+      <div class="search-row">
+        <input type="text" id="tableSearch" placeholder="Filter by name or SKU..." oninput="filterTable()" />
+        <button class="btn btn-secondary" onclick="loadTable(1)">↺ Refresh</button>
+      </div>
+      <div id="tableContent">
+        <div class="loading"><div class="spinner"></div><p>Loading...</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal" style="display:none;" onclick="closeOnOverlay(event)">
+  <div class="modal">
+    <button class="close-btn" onclick="closeModal()">✕</button>
+    <h3 id="modalTitle">Add Product</h3>
+    <form id="productForm" onsubmit="submitForm(event)">
+      <input type="hidden" id="editId" />
+      <div class="form-grid">
+        <div>
+          <label>Product Name *</label>
+          <input name="name" required placeholder="e.g. iPhone 15 Pro Max" />
+        </div>
+        <div>
+          <label>SKU *</label>
+          <input name="sku" required placeholder="e.g. PRD-001" />
+        </div>
+        <div>
+          <label>Brand *</label>
+          <input name="brand" required placeholder="e.g. Apple" />
+        </div>
+        <div>
+          <label>Category *</label>
+          <input name="category" required placeholder="e.g. Smartphones" />
+        </div>
+        <div>
+          <label>Price (₹) *</label>
+          <input name="price" type="number" min="0" step="0.01" required placeholder="1299.99" />
+        </div>
+        <div>
+          <label>Compare-At Price (₹)</label>
+          <input name="compareAtPrice" type="number" min="0" step="0.01" placeholder="1499.99" />
+        </div>
+        <div>
+          <label>Availability</label>
+          <select name="availability">
+            <option value="in_stock">In Stock</option>
+            <option value="out_of_stock">Out of Stock</option>
+            <option value="pre_order">Pre-Order</option>
+          </select>
+        </div>
+        <div>
+          <label>Stock Quantity</label>
+          <input name="stockQuantity" type="number" min="0" placeholder="100" />
+        </div>
+        <div>
+          <label>Weight (kg)</label>
+          <input name="weight" type="number" min="0" step="0.001" placeholder="0.221" />
+        </div>
+        <div>
+          <label>Slug (auto-generated if blank)</label>
+          <input name="slug" placeholder="iphone-15-pro-max" />
+        </div>
+        <div class="form-full">
+          <label>Short Description</label>
+          <input name="shortDescription" placeholder="One-liner summary" />
+        </div>
+        <div class="form-full">
+          <label>Full Description *</label>
+          <textarea name="description" rows="4" required placeholder="Detailed product description..."></textarea>
+        </div>
+        <div class="form-full">
+          <label>Images (one URL per line)</label>
+          <textarea name="images" rows="3" placeholder="https://example.com/img/product1.jpg&#10;https://example.com/img/product2.jpg"></textarea>
+        </div>
+        <div class="form-full">
+          <label>Tags (comma-separated)</label>
+          <input name="tags" placeholder="Electronics, Mobile, Apple" />
+        </div>
+        <div class="form-full">
+          <label>Specifications (one &quot;Key: Value&quot; per line)</label>
+          <textarea name="specifications" rows="4" placeholder="Storage: 256GB&#10;Color: Natural Titanium&#10;Chip: A17 Pro"></textarea>
+        </div>
+        <div>
+          <label>Active?</label>
+          <select name="isActive">
+            <option value="true">Yes</option>
+            <option value="false">No</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="submitBtn">Save Product</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  let currentPage = 1;
+  let allRows = [];
+
+  async function loadTable(page = 1) {
+    currentPage = page;
+    const tc = document.getElementById('tableContent');
+    tc.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading...</p></div>';
+    try {
+      const res = await fetch(`/api/admin/products?page=${page}&limit=20`);
+      const json = await res.json();
+      allRows = json.data || [];
+      renderTable(allRows, json.meta);
+    } catch (e) {
+      tc.innerHTML = `<p style="color:red;padding:20px;">Error: ${escapeHtml(e.message)}</p>`;
+    }
+  }
+
+  function filterTable() {
+    const q = document.getElementById('tableSearch').value.toLowerCase();
+    const filtered = allRows.filter(p =>
+      p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q) || (p.brand||'').toLowerCase().includes(q)
+    );
+    renderTable(filtered, null);
+  }
+
+  function renderTable(products, meta) {
+    const tc = document.getElementById('tableContent');
+    if (!products.length) {
+      tc.innerHTML = '<p style="padding:20px;color:#888;">No products found.</p>';
+      return;
+    }
+    const rows = products.map(p => `
+      <tr class="clickable-row" onclick="viewProduct('${encodeURIComponent(p.slug)}')">
+        <td>${p.images && p.images[0] ? `<img class="img-preview" src="${escapeHtml(p.images[0])}" onerror="this.src=''" />` : '—'}</td>
+        <td>${escapeHtml(p.name)}</td>
+        <td>${escapeHtml(p.sku)}</td>
+        <td>${escapeHtml(p.brand)}</td>
+        <td>${escapeHtml(p.category)}</td>
+        <td>₹${Number(p.price).toLocaleString('en-IN')}</td>
+        <td><span class="badge badge-${p.availability}">${p.availability.replace('_',' ')}</span></td>
+        <td>${p.stockQuantity ?? '—'}</td>
+        <td>${p.isActive ? '<span style="color:green;">✔</span>' : '<span style="color:red;">✘</span>'}</td>
+        <td style="white-space:nowrap;" onclick="event.stopPropagation()">
+          <button class="btn btn-info" style="padding:5px 10px;font-size:0.78rem;margin-right:4px;" onclick='openEdit(${JSON.stringify(p)})'>Edit</button>
+          <button class="btn btn-danger" style="padding:5px 10px;font-size:0.78rem;" onclick="deleteProduct('${p._id}', '${escapeHtml(p.name.replace(/'/g,"\'"))}')">Delete</button>
+        </td>
+      </tr>`).join('');
+
+    let paginationHtml = '';
+    if (meta && meta.totalPages > 1) {
+      paginationHtml = '<div class="pagination">';
+      for (let i = 1; i <= meta.totalPages; i++) {
+        paginationHtml += `<button class="${i === currentPage ? 'active' : ''}" onclick="loadTable(${i})">${i}</button>`;
+      }
+      paginationHtml += '</div>';
+    }
+
+    tc.innerHTML = `
+      <table>
+        <thead><tr>
+          <th>Image</th><th>Name</th><th>SKU</th><th>Brand</th><th>Category</th>
+          <th>Price</th><th>Availability</th><th>Stock</th><th>Active</th><th>Actions</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+      ${paginationHtml}`;
+  }
+
+  function openCreate() {
+    document.getElementById('modalTitle').textContent = 'Add New Product';
+    document.getElementById('productForm').reset();
+    document.getElementById('editId').value = '';
+    document.getElementById('submitBtn').textContent = 'Create Product';
+    document.getElementById('modal').style.display = 'flex';
+  }
+
+  function openEdit(p) {
+    document.getElementById('modalTitle').textContent = 'Edit Product';
+    document.getElementById('editId').value = p._id;
+    document.getElementById('submitBtn').textContent = 'Update Product';
+    const form = document.getElementById('productForm');
+    form.name.value = p.name || '';
+    form.sku.value = p.sku || '';
+    form.brand.value = p.brand || '';
+    form.category.value = p.category || '';
+    form.price.value = p.price || '';
+    form.compareAtPrice.value = p.compareAtPrice || '';
+    form.availability.value = p.availability || 'in_stock';
+    form.stockQuantity.value = p.stockQuantity ?? '';
+    form.weight.value = p.weight || '';
+    form.slug.value = p.slug || '';
+    form.shortDescription.value = p.shortDescription || '';
+    form.description.value = p.description || '';
+    form.images.value = (p.images || []).join('\n');
+    form.tags.value = (p.tags || []).join(', ');
+    form.isActive.value = String(p.isActive !== false);
+    // Specs
+    const specs = p.specifications && typeof p.specifications === 'object'
+      ? Object.entries(p.specifications).map(([k,v]) => `${k}: ${v}`).join('\n')
+      : '';
+    form.specifications.value = specs;
+    document.getElementById('modal').style.display = 'flex';
+  }
+
+  function closeModal() {
+    document.getElementById('modal').style.display = 'none';
+  }
+
+  function closeOnOverlay(e) {
+    if (e.target === document.getElementById('modal')) closeModal();
+  }
+
+  async function submitForm(e) {
+    e.preventDefault();
+    const form = e.target;
+    const id = document.getElementById('editId').value;
+
+    // Parse specifications
+    const specsRaw = form.specifications.value.trim();
+    const specifications = {};
+    if (specsRaw) {
+      specsRaw.split('\n').forEach(line => {
+        const idx = line.indexOf(':');
+        if (idx > 0) {
+          const key = line.slice(0, idx).trim();
+          const val = line.slice(idx + 1).trim();
+          if (key && val) specifications[key] = val;
+        }
+      });
+    }
+
+    const payload = {
+      name: form.name.value.trim(),
+      sku: form.sku.value.trim(),
+      brand: form.brand.value.trim(),
+      category: form.category.value.trim(),
+      price: parseFloat(form.price.value),
+      availability: form.availability.value,
+      isActive: form.isActive.value === 'true',
+      description: form.description.value.trim(),
+    };
+    if (form.compareAtPrice.value) payload.compareAtPrice = parseFloat(form.compareAtPrice.value);
+    if (form.stockQuantity.value !== '') payload.stockQuantity = parseInt(form.stockQuantity.value);
+    if (form.weight.value) payload.weight = parseFloat(form.weight.value);
+    if (form.slug.value.trim()) payload.slug = form.slug.value.trim();
+    if (form.shortDescription.value.trim()) payload.shortDescription = form.shortDescription.value.trim();
+    if (form.images.value.trim()) payload.images = form.images.value.split('\n').map(s => s.trim()).filter(Boolean);
+    if (form.tags.value.trim()) payload.tags = form.tags.value.split(',').map(s => s.trim()).filter(Boolean);
+    if (Object.keys(specifications).length) payload.specifications = specifications;
+
+    const url = id ? `/api/admin/products/${id}` : '/api/admin/products';
+    const method = id ? 'PUT' : 'POST';
+
+    try {
+      document.getElementById('submitBtn').disabled = true;
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Request failed');
+      showToast(id ? 'Product updated!' : 'Product created!', 'success');
+      closeModal();
+      loadTable(currentPage);
+    } catch (err) {
+      showToast('Error: ' + err.message, 'error');
+    } finally {
+      document.getElementById('submitBtn').disabled = false;
+    }
+  }
+
+  function viewProduct(slug) {
+    window.open(`/product.html?slug=${slug}`, '_blank');
+  }
+
+  async function deleteProduct(id, name) {
+    if (!confirm(`Delete product "${name}"? This cannot be undone.`)) return;
+    try {
+      const res = await fetch(`/api/admin/products/${id}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Delete failed');
+      showToast('Product deleted.', 'success');
+      loadTable(currentPage);
+    } catch (err) {
+      showToast('Error: ' + err.message, 'error');
+    }
+  }
+
+  function showToast(msg, type = '') {
+    const t = document.createElement('div');
+    t.className = 'toast ' + type;
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 3500);
+  }
+
+  function escapeHtml(str) {
+    const d = document.createElement('div');
+    d.textContent = String(str ?? '');
+    return d.innerHTML;
+  }
+
+  loadTable(1);
+</script>
+</body>
+</html>

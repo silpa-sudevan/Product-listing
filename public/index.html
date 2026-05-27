@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Product Listing — SuperLabs</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f5f6fa; color: #222; min-height: 100vh; }
+    header { background: #1a1a2e; color: #fff; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; }
+    header h1 { font-size: 1.4rem; letter-spacing: 0.5px; }
+    header nav a { color: #aad4f5; text-decoration: none; margin-left: 20px; font-size: 0.9rem; }
+    header nav a:hover { color: #fff; }
+    .search-bar { background: #16213e; padding: 28px 24px; }
+    .search-bar form { display: flex; gap: 10px; max-width: 900px; margin: 0 auto; flex-wrap: wrap; }
+    .search-bar input, .search-bar select { flex: 1; min-width: 140px; padding: 10px 14px; border: none; border-radius: 8px; font-size: 0.95rem; }
+    .search-bar button { padding: 10px 28px; background: #e94560; border: none; color: #fff; border-radius: 8px; cursor: pointer; font-size: 0.95rem; font-weight: 600; }
+    .search-bar button:hover { background: #c73652; }
+    .filters { background: #fff; border-bottom: 1px solid #e0e0e0; padding: 12px 24px; display: flex; gap: 14px; flex-wrap: wrap; align-items: center; max-width: 1200px; margin: 0 auto; }
+    .filters label { font-size: 0.85rem; font-weight: 600; color: #555; }
+    .filters select, .filters input[type=number] { padding: 6px 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.85rem; }
+    main { max-width: 1200px; margin: 24px auto; padding: 0 24px; }
+    .results-info { font-size: 0.9rem; color: #666; margin-bottom: 16px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 20px; }
+    .card { background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.07); overflow: hidden; transition: box-shadow .2s, transform .2s; cursor: pointer; text-decoration: none; color: inherit; display: flex; flex-direction: column; }
+    .card:hover { box-shadow: 0 6px 20px rgba(0,0,0,.13); transform: translateY(-3px); }
+    .card-img { width: 100%; height: 190px; object-fit: cover; background: #eee; }
+    .card-img-placeholder { width: 100%; height: 190px; background: linear-gradient(135deg,#667eea,#764ba2); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 2.5rem; }
+    .card-body { padding: 14px 16px; flex: 1; display: flex; flex-direction: column; gap: 6px; }
+    .card-brand { font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: .5px; }
+    .card-name { font-size: 0.95rem; font-weight: 600; line-height: 1.3; }
+    .card-price-row { display: flex; align-items: center; gap: 8px; margin-top: auto; padding-top: 8px; }
+    .card-price { font-size: 1.1rem; font-weight: 700; color: #e94560; }
+    .card-compare { font-size: 0.82rem; color: #aaa; text-decoration: line-through; }
+    .badge { font-size: 0.7rem; padding: 2px 8px; border-radius: 20px; font-weight: 600; }
+    .badge-in_stock { background: #e6f9ef; color: #1a7a40; }
+    .badge-out_of_stock { background: #fdecea; color: #c62828; }
+    .badge-pre_order { background: #fff3e0; color: #e65100; }
+    .stars { color: #f5a623; font-size: 0.85rem; }
+    .pagination { display: flex; justify-content: center; gap: 8px; margin: 32px 0; flex-wrap: wrap; }
+    .pagination button { padding: 8px 16px; border: 1px solid #ddd; background: #fff; border-radius: 6px; cursor: pointer; font-size: 0.9rem; }
+    .pagination button.active { background: #e94560; color: #fff; border-color: #e94560; }
+    .pagination button:disabled { opacity: 0.4; cursor: not-allowed; }
+    .empty { text-align: center; padding: 60px 20px; color: #888; }
+    .empty h2 { font-size: 1.5rem; margin-bottom: 8px; }
+    .loading { text-align: center; padding: 60px 20px; }
+    .spinner { width: 40px; height: 40px; border: 4px solid #eee; border-top-color: #e94560; border-radius: 50%; animation: spin .7s linear infinite; margin: 0 auto 16px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .tag { display: inline-block; background: #f0f0f0; color: #555; border-radius: 4px; padding: 2px 7px; font-size: 0.72rem; margin-right: 4px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>🛒 Product Listing</h1>
+  <nav>
+    <a href="/">Home</a>
+    <a href="/admin.html">Admin</a>
+    <a href="/api/docs" target="_blank">API Docs</a>
+  </nav>
+</header>
+
+<div class="search-bar">
+  <form id="searchForm">
+    <input type="text" id="searchInput" placeholder="Search products (e.g. iPhone, Samsung, laptop...)" />
+    <select id="catFilter">
+      <option value="">All Categories</option>
+    </select>
+    <select id="brandFilter">
+      <option value="">All Brands</option>
+    </select>
+    <button type="submit">Search</button>
+  </form>
+</div>
+
+<div style="background:#fff; border-bottom:1px solid #eee; padding:10px 24px;">
+  <div class="filters" style="padding:0; border:none;">
+    <label>Price:</label>
+    <input type="number" id="minPrice" placeholder="Min ₹" style="width:90px;" min="0" />
+    <span style="color:#888;">—</span>
+    <input type="number" id="maxPrice" placeholder="Max ₹" style="width:90px;" min="0" />
+    <label style="margin-left:14px;">Availability:</label>
+    <select id="availFilter">
+      <option value="">Any</option>
+      <option value="in_stock">In Stock</option>
+      <option value="out_of_stock">Out of Stock</option>
+      <option value="pre_order">Pre-Order</option>
+    </select>
+    <label style="margin-left:14px;">Sort:</label>
+    <select id="sortFilter">
+      <option value="newest">Newest</option>
+      <option value="price_asc">Price: Low → High</option>
+      <option value="price_desc">Price: High → Low</option>
+      <option value="rating_desc">Top Rated</option>
+      <option value="name_asc">Name A–Z</option>
+    </select>
+  </div>
+</div>
+
+<main>
+  <div class="results-info" id="resultsInfo"></div>
+  <div id="productGrid" class="grid"></div>
+  <div id="pagination" class="pagination"></div>
+</main>
+
+<script>
+  let currentPage = 1;
+  const limit = 12;
+
+  async function loadFilters() {
+    const [cats, brands] = await Promise.all([
+      fetch('/api/products/categories').then(r => r.json()).catch(() => []),
+      fetch('/api/products/brands').then(r => r.json()).catch(() => []),
+    ]);
+    const catSel = document.getElementById('catFilter');
+    const brandSel = document.getElementById('brandFilter');
+    cats.forEach(c => { const o = document.createElement('option'); o.value = c; o.textContent = c; catSel.appendChild(o); });
+    brands.forEach(b => { const o = document.createElement('option'); o.value = b; o.textContent = b; brandSel.appendChild(o); });
+  }
+
+  async function loadProducts(page = 1) {
+    currentPage = page;
+    const q = document.getElementById('searchInput').value.trim();
+    const category = document.getElementById('catFilter').value;
+    const brand = document.getElementById('brandFilter').value;
+    const minPrice = document.getElementById('minPrice').value;
+    const maxPrice = document.getElementById('maxPrice').value;
+    const availability = document.getElementById('availFilter').value;
+    const sort = document.getElementById('sortFilter').value;
+
+    const params = new URLSearchParams({ page, limit, sort });
+    if (q) params.set('q', q);
+    if (category) params.set('category', category);
+    if (brand) params.set('brand', brand);
+    if (minPrice) params.set('minPrice', minPrice);
+    if (maxPrice) params.set('maxPrice', maxPrice);
+    if (availability) params.set('availability', availability);
+
+    const grid = document.getElementById('productGrid');
+    const info = document.getElementById('resultsInfo');
+    grid.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading products...</p></div>';
+    info.textContent = '';
+
+    try {
+      const res = await fetch(`/api/products?${params}`);
+      const json = await res.json();
+      const { data, meta } = json;
+
+      if (!data || data.length === 0) {
+        grid.innerHTML = `<div class="empty"><h2>No products found</h2><p>Try a different keyword or clear filters.</p></div>`;
+        info.textContent = '';
+        renderPagination(meta);
+        return;
+      }
+
+      info.textContent = `Showing ${((meta.page - 1) * meta.limit) + 1}–${Math.min(meta.page * meta.limit, meta.total)} of ${meta.total} products`;
+
+      grid.innerHTML = '';
+      data.forEach(p => {
+        const imgEl = p.images && p.images.length
+          ? `<img class="card-img" src="${escapeHtml(p.images[0])}" alt="${escapeHtml(p.name)}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
+             <div class="card-img-placeholder" style="display:none;">🛍️</div>`
+          : `<div class="card-img-placeholder">🛍️</div>`;
+
+        const badgeClass = 'badge badge-' + p.availability;
+        const availLabel = p.availability === 'in_stock' ? 'In Stock' : p.availability === 'out_of_stock' ? 'Out of Stock' : 'Pre-Order';
+        const stars = '★'.repeat(Math.round(p.rating || 0)) + '☆'.repeat(5 - Math.round(p.rating || 0));
+
+        const card = document.createElement('a');
+        card.className = 'card';
+        card.href = `/product.html?slug=${encodeURIComponent(p.slug)}`;
+        card.innerHTML = `
+          ${imgEl}
+          <div class="card-body">
+            <div class="card-brand">${escapeHtml(p.brand)}</div>
+            <div class="card-name">${escapeHtml(p.name)}</div>
+            <div class="stars">${stars} <small style="color:#888;">(${p.reviewCount})</small></div>
+            <div class="card-price-row">
+              <span class="card-price">₹${Number(p.price).toLocaleString('en-IN')}</span>
+              ${p.compareAtPrice ? `<span class="card-compare">₹${Number(p.compareAtPrice).toLocaleString('en-IN')}</span>` : ''}
+              <span class="${badgeClass}" style="margin-left:auto;">${availLabel}</span>
+            </div>
+          </div>`;
+        grid.appendChild(card);
+      });
+
+      renderPagination(meta);
+    } catch (err) {
+      grid.innerHTML = `<div class="empty"><h2>Error loading products</h2><p>${escapeHtml(err.message)}</p></div>`;
+    }
+  }
+
+  function renderPagination(meta) {
+    if (!meta) return;
+    const pag = document.getElementById('pagination');
+    pag.innerHTML = '';
+    if (meta.totalPages <= 1) return;
+
+    const addBtn = (label, page, disabled = false, active = false) => {
+      const btn = document.createElement('button');
+      btn.textContent = label;
+      if (disabled) btn.disabled = true;
+      if (active) btn.classList.add('active');
+      btn.onclick = () => loadProducts(page);
+      pag.appendChild(btn);
+    };
+
+    addBtn('← Prev', meta.page - 1, !meta.hasPrevPage);
+    const start = Math.max(1, meta.page - 2);
+    const end = Math.min(meta.totalPages, meta.page + 2);
+    for (let i = start; i <= end; i++) addBtn(i, i, false, i === meta.page);
+    addBtn('Next →', meta.page + 1, !meta.hasNextPage);
+  }
+
+  function escapeHtml(str) {
+    const d = document.createElement('div');
+    d.textContent = String(str ?? '');
+    return d.innerHTML;
+  }
+
+  document.getElementById('searchForm').addEventListener('submit', e => { e.preventDefault(); loadProducts(1); });
+  ['catFilter','brandFilter','availFilter','sortFilter'].forEach(id =>
+    document.getElementById(id).addEventListener('change', () => loadProducts(1))
+  );
+
+  loadFilters().then(() => loadProducts(1));
+</script>
+</body>
+</html>
