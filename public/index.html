@@ -11,6 +11,10 @@
     header h1 { font-size: 1.4rem; letter-spacing: 0.5px; }
     header nav a { color: #aad4f5; text-decoration: none; margin-left: 20px; font-size: 0.9rem; }
     header nav a:hover { color: #fff; }
+    header nav a.nav-admin { background: #0f3460; color: #aad4f5; padding: 5px 14px; border-radius: 20px; font-weight: 600; font-size: 0.82rem; transition: background .2s; }
+    header nav a.nav-admin:hover { background: #16457a; color: #fff; }
+    header nav a.nav-highlight { background: #f5a623; color: #1a1a2e; padding: 5px 14px; border-radius: 20px; font-weight: 700; font-size: 0.82rem; transition: background .2s; }
+    header nav a.nav-highlight:hover { background: #ffbe45; color: #1a1a2e; }
     .search-bar { background: #16213e; padding: 28px 24px; }
     .search-bar form { display: flex; gap: 10px; max-width: 900px; margin: 0 auto; flex-wrap: wrap; }
     .search-bar input, .search-bar select { flex: 1; min-width: 140px; padding: 10px 14px; border: none; border-radius: 8px; font-size: 0.95rem; }
@@ -55,8 +59,8 @@
   <h1>🛒 Product Listing</h1>
   <nav>
     <a href="/">Home</a>
-    <a href="/admin.html">Admin</a>
-    <a href="/api/docs" target="_blank">API Docs</a>
+    <a href="/admin.html" class="nav-admin">🔧 Admin</a>
+    <a href="/api/docs" target="_blank" class="nav-highlight">📄 API Docs</a>
   </nav>
 </header>
 
