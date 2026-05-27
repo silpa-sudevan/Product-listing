@@ -90,7 +90,7 @@ npm run start:prod
 |--------|-----------------------------------|--------------------------|
 | GET    | `/api/admin/products`             | List all products        |
 | POST   | `/api/admin/products`             | Create a product         |
-| PUT    | `/api/admin/products/:id`         | Update a product         |
+| PATCH  | `/api/admin/products/:id`         | Update a product         |
 | DELETE | `/api/admin/products/:id`         | Delete a product         |
 | POST   | `/api/admin/products/:id/reviews` | Add a review             |
 
